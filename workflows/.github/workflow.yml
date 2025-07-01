@@ -1,0 +1,43 @@
+name: CI
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - <setup dependencies & caching>
+      - run: ./autogen.sh
+      - run: ./configure
+      - run: make -j$(nproc)
+      - run: ctest --output-on-failure
+      - run: build/test/functional/test_runner.py
+      - run: flake8 contrib/
+      - run: <clang-format/static analysis checks>
+      - run: <libFuzzer-based fuzz tests>
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - <install Homebrew deps>
+      - run: ./autogen.sh
+      - run: ./configure
+      - run: make
+      - run: ctest --output-on-failure
+      - run: build/test/functional/test_runner.py
+      - run: flake8, format checks
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - <setup MSVC env>
+      - run: ./autogen.sh
+      - run: ./configure --with-msvc
+      - run: make / build with MSVC
+      - run: ctest and functional tests
